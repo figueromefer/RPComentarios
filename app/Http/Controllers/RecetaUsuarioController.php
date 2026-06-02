@@ -109,6 +109,9 @@ class RecetaUsuarioController extends Controller
             'fkStatus' => ['required', 'integer', 'in:1,2,3'],
         ]);
 
+        $debugEnabled = $request->boolean('debugApi');
+        $apiDebug = [];
+
         $recipePayload = [
             'pkReceta' => $receta,
             'title' => $validated['title'],
@@ -121,27 +124,36 @@ class RecetaUsuarioController extends Controller
         ];
 
         try {
+            $updateUrl = self::API_BASE_URL.'/api/actualizarRecetaUsuario';
             $updateResponse = Http::timeout(30)
                 ->asForm()
-                ->post(self::API_BASE_URL.'/api/actualizarRecetaUsuario', $recipePayload);
+                ->post($updateUrl, $recipePayload);
+
+            $apiDebug[] = [
+                'label' => 'Actualizar receta',
+                'method' => 'POST',
+                'url' => $updateUrl,
+                'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
+                'body' => $recipePayload,
+                'response_status' => $updateResponse->status(),
+                'response_body' => $updateResponse->body(),
+            ];
 
             if (! $updateResponse->successful()) {
-                return back()->withInput()->withErrors([
-                    'api' => 'No se pudo actualizar la receta. Código API: '.$updateResponse->status().' '.$this->apiMessage($updateResponse),
-                ]);
+                return $this->backWithApiError($debugEnabled, $apiDebug, 'No se pudo actualizar la receta. Código API: '.$updateResponse->status().' '.$this->apiMessage($updateResponse));
             }
 
-            $statusResponse = $this->sendStatusChange($receta, (int) $validated['fkStatus']);
+            $statusResponse = $this->sendStatusChange($receta, (int) $validated['fkStatus'], $apiDebug);
 
             if (! $statusResponse->successful()) {
-                return back()->withInput()->withErrors([
-                    'api' => 'La receta se editó, pero no se pudo cambiar el estatus. Código API: '.$statusResponse->status().' '.$this->apiMessage($statusResponse),
-                ]);
+                return $this->backWithApiError($debugEnabled, $apiDebug, 'La receta se editó, pero no se pudo cambiar el estatus. Código API: '.$statusResponse->status().' '.$this->apiMessage($statusResponse));
             }
         } catch (ConnectionException $exception) {
-            return back()->withInput()->withErrors([
-                'api' => 'No se pudo conectar con la API de recetas.',
-            ]);
+            return $this->backWithApiError($debugEnabled, $apiDebug, 'No se pudo conectar con la API de recetas.');
+        }
+
+        if ($debugEnabled) {
+            return back()->withInput()->with('api_debug', $apiDebug)->with('status', 'Debug API generado. Copia esta información para compartirla con el programador.');
         }
 
         return redirect()
@@ -158,12 +170,13 @@ class RecetaUsuarioController extends Controller
         ]);
 
         try {
-            $response = $this->sendStatusChange($receta, (int) $validated['fkStatus']);
+            $apiDebug = [];
+            $response = $this->sendStatusChange($receta, (int) $validated['fkStatus'], $apiDebug);
 
             if (! $response->successful()) {
                 return back()->withErrors([
                     'api' => 'No se pudo cambiar el estatus. Código API: '.$response->status().' '.$this->apiMessage($response),
-                ]);
+                ])->with('api_debug', $apiDebug);
             }
         } catch (ConnectionException $exception) {
             return back()->withErrors([
@@ -178,14 +191,38 @@ class RecetaUsuarioController extends Controller
             ->with('status', 'Estatus actualizado correctamente.');
     }
 
-    private function sendStatusChange(int $receta, int $fkStatus)
+    private function sendStatusChange(int $receta, int $fkStatus, array &$apiDebug = [])
     {
-        return Http::timeout(30)
-            ->withHeaders([
-                'pkReceta' => (string) $receta,
-                'fkStatus' => (string) $fkStatus,
-            ])
-            ->post(self::API_BASE_URL.'/api/cambiarStatusRecetaUsuario');
+        $url = self::API_BASE_URL.'/api/cambiarStatusRecetaUsuario';
+        $headers = [
+            'pkReceta' => (string) $receta,
+            'fkStatus' => (string) $fkStatus,
+        ];
+
+        $response = Http::timeout(30)
+            ->withHeaders($headers)
+            ->post($url);
+
+        $apiDebug[] = [
+            'label' => 'Cambiar estatus',
+            'method' => 'POST',
+            'url' => $url,
+            'headers' => $headers,
+            'body' => [],
+            'response_status' => $response->status(),
+            'response_body' => $response->body(),
+        ];
+
+        return $response;
+    }
+
+    private function backWithApiError(bool $debugEnabled, array $apiDebug, string $message)
+    {
+        $response = back()->withInput()->withErrors([
+            'api' => $message,
+        ]);
+
+        return $debugEnabled ? $response->with('api_debug', $apiDebug) : $response;
     }
 
     private function normalizeCollection(mixed $payload): array
