@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 
 class RecetaUsuarioController extends Controller
@@ -98,24 +97,28 @@ class RecetaUsuarioController extends Controller
     {
         $validated = $request->validate([
             'title' => ['required', 'string'],
-            'description' => ['nullable', 'string'],
             'time' => ['required', 'string'],
             'portion' => ['required', 'string'],
-            'cal' => ['nullable', 'string'],
             'ingredients' => ['required', 'string'],
             'instructions' => ['required', 'string'],
             'fkStatus' => ['required', 'integer', 'in:1,2,3'],
         ]);
 
-        $recipeHeaders = Arr::except($validated, ['fkStatus']);
-        $recipeHeaders['pkReceta'] = $receta;
-        $recipeHeaders['description'] = $recipeHeaders['description'] ?? '';
-        $recipeHeaders['cal'] = $recipeHeaders['cal'] ?? '';
+        $recipePayload = [
+            'pkReceta' => $receta,
+            'title' => $validated['title'],
+            'description' => '',
+            'time' => $validated['time'],
+            'portion' => $validated['portion'],
+            'cal' => '',
+            'ingredients' => $validated['ingredients'],
+            'instructions' => $validated['instructions'],
+        ];
 
         try {
             $updateResponse = Http::timeout(30)
-                ->withHeaders($recipeHeaders)
-                ->post(self::API_BASE_URL.'/api/actualizarRecetaUsuario');
+                ->asForm()
+                ->post(self::API_BASE_URL.'/api/actualizarRecetaUsuario', $recipePayload);
 
             if (! $updateResponse->successful()) {
                 return back()->withInput()->withErrors([
@@ -124,11 +127,11 @@ class RecetaUsuarioController extends Controller
             }
 
             $statusResponse = Http::timeout(30)
-                ->withHeaders([
+                ->asForm()
+                ->post(self::API_BASE_URL.'/api/cambiarStatusRecetaUsuario', [
                     'pkReceta' => $receta,
                     'fkStatus' => $validated['fkStatus'],
-                ])
-                ->post(self::API_BASE_URL.'/api/cambiarStatusRecetaUsuario');
+                ]);
 
             if (! $statusResponse->successful()) {
                 return back()->withInput()->withErrors([
@@ -156,11 +159,11 @@ class RecetaUsuarioController extends Controller
 
         try {
             $response = Http::timeout(30)
-                ->withHeaders([
+                ->asForm()
+                ->post(self::API_BASE_URL.'/api/cambiarStatusRecetaUsuario', [
                     'pkReceta' => $receta,
                     'fkStatus' => $validated['fkStatus'],
-                ])
-                ->post(self::API_BASE_URL.'/api/cambiarStatusRecetaUsuario');
+                ]);
 
             if (! $response->successful()) {
                 return back()->withErrors([
