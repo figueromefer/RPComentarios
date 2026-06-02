@@ -21,7 +21,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Recetas Usuario
+            Recetas de clientes
         </h2>
     </x-slot>
 
@@ -50,7 +50,7 @@
                 <select name="fkStatus" class="border rounded px-3 py-2 min-w-52">
                     @foreach($estados as $id => $nombre)
                         <option value="{{ $id }}" @selected((int) $fkStatus === (int) $id)>
-                            {{ $nombre }} ({{ $id }})
+                            {{ $nombre }}
                         </option>
                     @endforeach
                 </select>
@@ -67,9 +67,11 @@
                     <tr>
                         <th class="text-left px-4 py-2">ID</th>
                         <th class="text-left px-4 py-2">Título</th>
-                        <th class="text-left px-4 py-2">Descripción</th>
+                        <th class="text-left px-4 py-2">Descripción corta</th>
                         <th class="text-left px-4 py-2">Tiempo</th>
-                        <th class="text-left px-4 py-2">Porción</th>
+                        <th class="text-left px-4 py-2">Porciones</th>
+                        <th class="text-left px-4 py-2">Imagen</th>
+                        <th class="text-left px-4 py-2">Video</th>
                         <th class="text-left px-4 py-2">Estatus</th>
                         <th class="text-left px-4 py-2"></th>
                     </tr>
@@ -79,9 +81,11 @@
                     @php
                         $pkReceta = $getValue($receta, ['pkReceta', 'id', 'PK_RECETA']);
                         $title = $getValue($receta, ['title', 'titulo', 'TITULO'], 'Sin título');
-                        $description = $getValue($receta, ['description', 'descripcion', 'DESCRIPCION']);
+                        $description = $getValue($receta, ['description_short', 'description', 'descripcion', 'DESCRIPCION']);
                         $time = $getValue($receta, ['time', 'tiempo', 'TIEMPO']);
-                        $portion = $getValue($receta, ['portion', 'porcion', 'PORCION']);
+                        $portions = $getValue($receta, ['portions', 'portion', 'porcion', 'PORCION']);
+                        $image = $getValue($receta, ['image', 'imagen']);
+                        $video = $getValue($receta, ['youtube', 'video']);
                         $rowStatus = (int) $getValue($receta, ['fkStatus', 'status', 'FK_STATUS'], $fkStatus);
                     @endphp
 
@@ -94,7 +98,9 @@
                             {{ Str::limit($description, 90) }}
                         </td>
                         <td class="px-4 py-2 whitespace-nowrap">{{ $time }}</td>
-                        <td class="px-4 py-2 whitespace-nowrap">{{ $portion }}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">{{ $portions }}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">{{ $image ? 'Sí' : 'No' }}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">{{ $video ? 'Sí' : 'No' }}</td>
                         <td class="px-4 py-2 whitespace-nowrap">
                             <span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold {{ $badgeClasses[$rowStatus] ?? 'bg-gray-100 text-gray-800' }}">
                                 {{ $estados[$rowStatus] ?? $rowStatus }}
@@ -112,7 +118,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-4 py-6 text-center text-gray-500">
+                        <td colspan="9" class="px-4 py-6 text-center text-gray-500">
                             Sin recetas para este estatus.
                         </td>
                     </tr>
