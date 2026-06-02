@@ -84,14 +84,32 @@
                     </div>
 
                     <div>
-                        <label class="block mb-1 font-medium">Estatus</label>
-                        <select name="fkStatus" class="w-full border rounded px-3 py-2">
+                        <label class="block mb-2 font-medium">Estatus</label>
+                        @php
+                            $selectedStatus = (int) old('fkStatus', data_get($receta, 'fkStatus', $fkStatus));
+                            $statusStyles = [
+                                1 => 'border-green-500 bg-green-50 text-green-800 ring-green-200',
+                                2 => 'border-yellow-500 bg-yellow-50 text-yellow-800 ring-yellow-200',
+                                3 => 'border-red-500 bg-red-50 text-red-800 ring-red-200',
+                            ];
+                            $statusDotStyles = [
+                                1 => 'bg-green-500',
+                                2 => 'bg-yellow-500',
+                                3 => 'bg-red-500',
+                            ];
+                        @endphp
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                             @foreach($estados as $id => $nombre)
-                                <option value="{{ $id }}" @selected(old('fkStatus', data_get($receta, 'fkStatus', $fkStatus)) == $id)>
-                                    {{ $nombre }}
-                                </option>
+                                @php $isSelected = $selectedStatus === (int) $id; @endphp
+                                <label class="cursor-pointer rounded-lg border px-3 py-3 text-sm font-semibold transition {{ $isSelected ? ($statusStyles[$id] ?? 'border-indigo-500 bg-indigo-50 text-indigo-800 ring-indigo-200').' ring-2' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50' }}">
+                                    <input type="radio" name="fkStatus" value="{{ $id }}" class="sr-only" @checked($isSelected)>
+                                    <span class="flex items-center gap-2">
+                                        <span class="h-2.5 w-2.5 rounded-full {{ $statusDotStyles[$id] ?? 'bg-gray-400' }}"></span>
+                                        {{ $nombre }}
+                                    </span>
+                                </label>
                             @endforeach
-                        </select>
+                        </div>
                         @error('fkStatus') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
                     </div>
                 </div>
