@@ -6,11 +6,11 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 
 class RecetaUsuarioController extends Controller
 {
     private const API_BASE_URL = 'http://149.56.15.70';
+    private const FK_COUNTRY = 1;
 
     private const ESTADOS = [
         1 => 'Aprobado',
@@ -25,7 +25,6 @@ class RecetaUsuarioController extends Controller
 
     public function index(Request $request)
     {
-        $fkCountry = (int) $request->query('fkCountry', 1);
         $fkStatus = (int) $request->query('fkStatus', 2);
 
         if (! array_key_exists($fkStatus, self::ESTADOS)) {
@@ -38,7 +37,7 @@ class RecetaUsuarioController extends Controller
         try {
             $response = Http::timeout(30)
                 ->withHeaders([
-                    'fkCountry' => $fkCountry,
+                    'fkCountry' => self::FK_COUNTRY,
                     'fkStatus' => $fkStatus,
                 ])
                 ->get(self::API_BASE_URL.'/api/obtenerRecetasUsuario');
@@ -55,7 +54,6 @@ class RecetaUsuarioController extends Controller
         return view('recetas-usuario.index', [
             'recetas' => $recetas,
             'estados' => self::ESTADOS,
-            'fkCountry' => $fkCountry,
             'fkStatus' => $fkStatus,
             'error' => $error,
         ]);
@@ -63,7 +61,6 @@ class RecetaUsuarioController extends Controller
 
     public function edit(Request $request, int $receta)
     {
-        $fkCountry = (int) $request->query('fkCountry', 1);
         $fkStatus = (int) $request->query('fkStatus', 2);
         $data = null;
         $error = null;
@@ -71,7 +68,7 @@ class RecetaUsuarioController extends Controller
         try {
             $response = Http::timeout(30)
                 ->withHeaders([
-                    'fkCountry' => $fkCountry,
+                    'fkCountry' => self::FK_COUNTRY,
                     'fkStatus' => $fkStatus,
                 ])
                 ->get(self::API_BASE_URL.'/api/obtenerRecetasUsuario');
@@ -94,7 +91,6 @@ class RecetaUsuarioController extends Controller
         return view('recetas-usuario.edit', [
             'receta' => $data,
             'estados' => self::ESTADOS,
-            'fkCountry' => $fkCountry,
             'fkStatus' => $fkStatus,
             'error' => $error,
         ]);
@@ -111,12 +107,11 @@ class RecetaUsuarioController extends Controller
             'ingredients' => ['required', 'string'],
             'instructions' => ['required', 'string'],
             'fkStatus' => ['required', 'integer', 'in:1,2,3'],
-            'fkCountry' => ['required', 'integer'],
         ]);
 
         try {
             $updateResponse = Http::timeout(30)
-                ->withHeaders(array_merge(['pkReceta' => $receta], Arr::except($validated, ['fkStatus', 'fkCountry'])))
+                ->withHeaders(array_merge(['pkReceta' => $receta], Arr::except($validated, ['fkStatus'])))
                 ->post(self::API_BASE_URL.'/api/actualizarRecetaUsuario');
 
             if (! $updateResponse->successful()) {
@@ -145,7 +140,6 @@ class RecetaUsuarioController extends Controller
 
         return redirect()
             ->route('recetas-usuario.index', [
-                'fkCountry' => $validated['fkCountry'],
                 'fkStatus' => $validated['fkStatus'],
             ])
             ->with('status', 'Receta actualizada correctamente.');
@@ -155,7 +149,6 @@ class RecetaUsuarioController extends Controller
     {
         $validated = $request->validate([
             'fkStatus' => ['required', 'integer', 'in:1,2,3'],
-            'fkCountry' => ['required', 'integer'],
         ]);
 
         try {
@@ -179,7 +172,6 @@ class RecetaUsuarioController extends Controller
 
         return redirect()
             ->route('recetas-usuario.index', [
-                'fkCountry' => $validated['fkCountry'],
                 'fkStatus' => $validated['fkStatus'],
             ])
             ->with('status', 'Estatus actualizado correctamente.');
