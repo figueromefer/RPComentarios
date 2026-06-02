@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Http;
 
 class RecetaUsuarioController extends Controller
 {
-    private const API_BASE_URL = 'http://149.56.15.70';
+    private const API_BASE_URL = 'http://149.56.15.70:3013';
     private const FK_COUNTRY = 1;
 
     private const ESTADOS = [
@@ -36,11 +36,10 @@ class RecetaUsuarioController extends Controller
 
         try {
             $response = Http::timeout(30)
-                ->withHeaders([
+                ->get(self::API_BASE_URL.'/api/obtenerRecetasUsuario', [
                     'fkCountry' => self::FK_COUNTRY,
                     'fkStatus' => $fkStatus,
-                ])
-                ->get(self::API_BASE_URL.'/api/obtenerRecetasUsuario');
+                ]);
 
             if ($response->successful()) {
                 $recetas = $this->normalizeCollection($response->json());
@@ -67,11 +66,10 @@ class RecetaUsuarioController extends Controller
 
         try {
             $response = Http::timeout(30)
-                ->withHeaders([
+                ->get(self::API_BASE_URL.'/api/obtenerRecetasUsuario', [
                     'fkCountry' => self::FK_COUNTRY,
                     'fkStatus' => $fkStatus,
-                ])
-                ->get(self::API_BASE_URL.'/api/obtenerRecetasUsuario');
+                ]);
 
             if ($response->successful()) {
                 $data = collect($this->normalizeCollection($response->json()))
@@ -85,7 +83,7 @@ class RecetaUsuarioController extends Controller
 
         if (! $data && ! $error) {
             $error = 'No se encontró la receta en el listado del estatus seleccionado.';
-            $data = ['pkReceta' => $receta, 'fkStatus' => $fkStatus];
+            $data = ['id' => $receta, 'fkStatus' => $fkStatus];
         }
 
         return view('recetas-usuario.edit', [
@@ -100,18 +98,23 @@ class RecetaUsuarioController extends Controller
     {
         $validated = $request->validate([
             'title' => ['required', 'string'],
-            'description' => ['required', 'string'],
+            'description' => ['nullable', 'string'],
             'time' => ['required', 'string'],
             'portion' => ['required', 'string'],
-            'cal' => ['required', 'string'],
+            'cal' => ['nullable', 'string'],
             'ingredients' => ['required', 'string'],
             'instructions' => ['required', 'string'],
             'fkStatus' => ['required', 'integer', 'in:1,2,3'],
         ]);
 
+        $recipeHeaders = Arr::except($validated, ['fkStatus']);
+        $recipeHeaders['pkReceta'] = $receta;
+        $recipeHeaders['description'] = $recipeHeaders['description'] ?? '';
+        $recipeHeaders['cal'] = $recipeHeaders['cal'] ?? '';
+
         try {
             $updateResponse = Http::timeout(30)
-                ->withHeaders(array_merge(['pkReceta' => $receta], Arr::except($validated, ['fkStatus'])))
+                ->withHeaders($recipeHeaders)
                 ->post(self::API_BASE_URL.'/api/actualizarRecetaUsuario');
 
             if (! $updateResponse->successful()) {
@@ -183,7 +186,7 @@ class RecetaUsuarioController extends Controller
             return $payload;
         }
 
-        foreach (['data', 'recetas', 'recipes', 'result', 'resultado'] as $key) {
+        foreach (['mensaje', 'data', 'recetas', 'recipes', 'result', 'resultado'] as $key) {
             $value = data_get($payload, $key);
             if (is_array($value)) {
                 return array_is_list($value) ? $value : [$value];
