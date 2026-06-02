@@ -85,6 +85,11 @@ class RecetaUsuarioController extends Controller
             $data = ['id' => $receta, 'fkStatus' => $fkStatus];
         }
 
+        if (is_array($data)) {
+            $data['ingredients'] = $this->brToTextarea($data['ingredients'] ?? '');
+            $data['instructions'] = $this->brToTextarea($data['instructions'] ?? '');
+        }
+
         return view('recetas-usuario.edit', [
             'receta' => $data,
             'estados' => self::ESTADOS,
@@ -111,8 +116,8 @@ class RecetaUsuarioController extends Controller
             'time' => $validated['time'],
             'portion' => $validated['portion'],
             'cal' => '',
-            'ingredients' => $validated['ingredients'],
-            'instructions' => $validated['instructions'],
+            'ingredients' => $this->textareaToBr($validated['ingredients']),
+            'instructions' => $this->textareaToBr($validated['instructions']),
         ];
 
         try {
@@ -208,5 +213,16 @@ class RecetaUsuarioController extends Controller
         }
 
         return $default;
+    }
+
+    private function textareaToBr(string $value): string
+    {
+        $normalized = str_replace(["\r\n", "\r"], "\n", trim($value));
+        return str_replace("\n", '<br>', $normalized);
+    }
+
+    private function brToTextarea(string $value): string
+    {
+        return preg_replace('/<br\s*\/?>/i', "\n", $value) ?? $value;
     }
 }
