@@ -43,7 +43,7 @@ class RecetaUsuarioController extends Controller
             if ($response->successful()) {
                 $recetas = $this->normalizeCollection($response->json());
             } else {
-                $error = 'No se pudieron obtener las recetas. Código API: '.$response->status();
+                $error = 'No se pudieron obtener las recetas. Código API: '.$response->status().' '.$this->apiMessage($response);
             }
         } catch (ConnectionException $exception) {
             $error = 'No se pudo conectar con la API de recetas.';
@@ -74,7 +74,7 @@ class RecetaUsuarioController extends Controller
                 $data = collect($this->normalizeCollection($response->json()))
                     ->first(fn ($item) => (int) $this->value($item, ['pkReceta', 'id', 'PK_RECETA']) === $receta);
             } else {
-                $error = 'No se pudo obtener el detalle de la receta. Código API: '.$response->status();
+                $error = 'No se pudo obtener el detalle de la receta. Código API: '.$response->status().' '.$this->apiMessage($response);
             }
         } catch (ConnectionException $exception) {
             $error = 'No se pudo conectar con la API de recetas.';
@@ -127,20 +127,15 @@ class RecetaUsuarioController extends Controller
 
             if (! $updateResponse->successful()) {
                 return back()->withInput()->withErrors([
-                    'api' => 'No se pudo actualizar la receta. Código API: '.$updateResponse->status(),
+                    'api' => 'No se pudo actualizar la receta. Código API: '.$updateResponse->status().' '.$this->apiMessage($updateResponse),
                 ]);
             }
 
-            $statusResponse = Http::timeout(30)
-                ->asForm()
-                ->post(self::API_BASE_URL.'/api/cambiarStatusRecetaUsuario', [
-                    'pkReceta' => $receta,
-                    'fkStatus' => $validated['fkStatus'],
-                ]);
+            $statusResponse = $this->sendStatusChange($receta, (int) $validated['fkStatus']);
 
             if (! $statusResponse->successful()) {
                 return back()->withInput()->withErrors([
-                    'api' => 'La receta se editó, pero no se pudo cambiar el estatus. Código API: '.$statusResponse->status(),
+                    'api' => 'La receta se editó, pero no se pudo cambiar el estatus. Código API: '.$statusResponse->status().' '.$this->apiMessage($statusResponse),
                 ]);
             }
         } catch (ConnectionException $exception) {
@@ -163,16 +158,11 @@ class RecetaUsuarioController extends Controller
         ]);
 
         try {
-            $response = Http::timeout(30)
-                ->asForm()
-                ->post(self::API_BASE_URL.'/api/cambiarStatusRecetaUsuario', [
-                    'pkReceta' => $receta,
-                    'fkStatus' => $validated['fkStatus'],
-                ]);
+            $response = $this->sendStatusChange($receta, (int) $validated['fkStatus']);
 
             if (! $response->successful()) {
                 return back()->withErrors([
-                    'api' => 'No se pudo cambiar el estatus. Código API: '.$response->status(),
+                    'api' => 'No se pudo cambiar el estatus. Código API: '.$response->status().' '.$this->apiMessage($response),
                 ]);
             }
         } catch (ConnectionException $exception) {
@@ -186,6 +176,16 @@ class RecetaUsuarioController extends Controller
                 'fkStatus' => $validated['fkStatus'],
             ])
             ->with('status', 'Estatus actualizado correctamente.');
+    }
+
+    private function sendStatusChange(int $receta, int $fkStatus)
+    {
+        return Http::timeout(30)
+            ->withHeaders([
+                'pkReceta' => (string) $receta,
+                'fkStatus' => (string) $fkStatus,
+            ])
+            ->post(self::API_BASE_URL.'/api/cambiarStatusRecetaUsuario');
     }
 
     private function normalizeCollection(mixed $payload): array
@@ -224,5 +224,22 @@ class RecetaUsuarioController extends Controller
     private function brToTextarea(string $value): string
     {
         return preg_replace('/<br\s*\/?>/i', "\n", $value) ?? $value;
+    }
+
+    private function apiMessage($response): string
+    {
+        $json = $response->json();
+
+        if (is_array($json)) {
+            foreach (['mensaje', 'message', 'error', 'msg'] as $key) {
+                $value = data_get($json, $key);
+                if (is_string($value) && $value !== '') {
+                    return '- '.$value;
+                }
+            }
+        }
+
+        $body = trim($response->body());
+        return $body !== '' ? '- '.mb_substr($body, 0, 250) : '';
     }
 }
