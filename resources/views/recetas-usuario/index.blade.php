@@ -47,7 +47,7 @@
         <form method="get" class="mb-4 flex flex-col sm:flex-row gap-2 sm:items-end">
             <div>
                 <label class="block mb-1 text-sm font-medium text-gray-700">Estatus</label>
-                <select name="fkStatus" class="border rounded px-3 py-2 min-w-52">
+                <select name="fkStatus" class="border rounded px-3 py-2 min-w-52" onchange="this.form.submit()">
                     @foreach($estados as $id => $nombre)
                         <option value="{{ $id }}" @selected((int) $fkStatus === (int) $id)>
                             {{ $nombre }}
@@ -56,9 +56,11 @@
                 </select>
             </div>
 
-            <button class="px-4 py-2 bg-indigo-600 text-white rounded">
-                Filtrar
-            </button>
+            <noscript>
+                <button class="px-4 py-2 bg-indigo-600 text-white rounded">
+                    Filtrar
+                </button>
+            </noscript>
         </form>
 
         <div class="bg-white shadow rounded overflow-hidden">
