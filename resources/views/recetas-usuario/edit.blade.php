@@ -40,24 +40,29 @@
                 <div>
                     <label class="block mb-1 font-medium">Imagen</label>
                     @if($imageUrl)
-                        <img src="{{ $imageUrl }}" alt="Imagen de receta" class="w-full max-w-[400px] max-h-72 object-contain rounded border bg-gray-50">
+                        <img src="{{ $imageUrl }}" alt="Imagen de receta"
+                             class="block rounded border bg-gray-50"
+                             style="display:block;width:auto !important;height:auto !important;max-width:400px !important;max-height:300px !important;object-fit:contain;">
                         <a href="{{ $imageUrl }}" target="_blank" class="inline-block mt-2 text-indigo-600 hover:underline">
                             Abrir imagen
                         </a>
                     @else
-                        <div class="border rounded p-4 text-gray-500 bg-gray-50 max-w-[400px]">Sin imagen</div>
+                        <div class="border rounded p-4 text-gray-500 bg-gray-50" style="max-width:400px;">Sin imagen</div>
                     @endif
                 </div>
 
                 <div>
                     <label class="block mb-1 font-medium">Video</label>
                     @if($videoUrl)
-                        <video src="{{ $videoUrl }}" controls class="w-full max-w-[400px] max-h-72 rounded border bg-gray-50"></video>
+                        <video src="{{ $videoUrl }}" controls
+                               class="block rounded border bg-gray-50"
+                               style="display:block;width:auto !important;height:auto !important;max-width:400px !important;max-height:300px !important;">
+                        </video>
                         <a href="{{ $videoUrl }}" target="_blank" class="inline-block mt-2 text-indigo-600 hover:underline">
                             Abrir video
                         </a>
                     @else
-                        <div class="border rounded p-4 text-gray-500 bg-gray-50 max-w-[400px]">Sin video</div>
+                        <div class="border rounded p-4 text-gray-500 bg-gray-50" style="max-width:400px;">Sin video</div>
                     @endif
                 </div>
             </div>
