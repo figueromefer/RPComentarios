@@ -80,13 +80,7 @@
                     </div>
                 </div>
 
-                <div class="mt-4">
-                    <label class="block mb-1 font-medium">Descripción corta</label>
-                    <textarea name="description" rows="4" class="w-full border rounded px-3 py-2">{{ old('description', data_get($receta, 'description_short', data_get($receta, 'description'))) }}</textarea>
-                    @error('description') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div>
                         <label class="block mb-1 font-medium">Tiempo</label>
                         <input type="text" name="time" class="w-full border rounded px-3 py-2"
@@ -99,13 +93,6 @@
                         <input type="text" name="portion" class="w-full border rounded px-3 py-2"
                             value="{{ old('portion', data_get($receta, 'portions', data_get($receta, 'portion'))) }}">
                         @error('portion') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
-                    </div>
-
-                    <div>
-                        <label class="block mb-1 font-medium">Calorías</label>
-                        <input type="text" name="cal" class="w-full border rounded px-3 py-2"
-                            value="{{ old('cal', data_get($receta, 'cal')) }}">
-                        @error('cal') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
                     </div>
                 </div>
 
