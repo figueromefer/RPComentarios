@@ -40,24 +40,24 @@
                 <div>
                     <label class="block mb-1 font-medium">Imagen</label>
                     @if($imageUrl)
-                        <img src="{{ $imageUrl }}" alt="Imagen de receta" class="w-full max-h-72 object-cover rounded border">
+                        <img src="{{ $imageUrl }}" alt="Imagen de receta" class="w-full max-w-[400px] max-h-72 object-contain rounded border bg-gray-50">
                         <a href="{{ $imageUrl }}" target="_blank" class="inline-block mt-2 text-indigo-600 hover:underline">
                             Abrir imagen
                         </a>
                     @else
-                        <div class="border rounded p-4 text-gray-500 bg-gray-50">Sin imagen</div>
+                        <div class="border rounded p-4 text-gray-500 bg-gray-50 max-w-[400px]">Sin imagen</div>
                     @endif
                 </div>
 
                 <div>
                     <label class="block mb-1 font-medium">Video</label>
                     @if($videoUrl)
-                        <video src="{{ $videoUrl }}" controls class="w-full max-h-72 rounded border"></video>
+                        <video src="{{ $videoUrl }}" controls class="w-full max-w-[400px] max-h-72 rounded border bg-gray-50"></video>
                         <a href="{{ $videoUrl }}" target="_blank" class="inline-block mt-2 text-indigo-600 hover:underline">
                             Abrir video
                         </a>
                     @else
-                        <div class="border rounded p-4 text-gray-500 bg-gray-50">Sin video</div>
+                        <div class="border rounded p-4 text-gray-500 bg-gray-50 max-w-[400px]">Sin video</div>
                     @endif
                 </div>
             </div>
