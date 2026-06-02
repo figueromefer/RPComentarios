@@ -17,7 +17,7 @@
                     </x-nav-link>
 
                     <x-nav-link :href="route('recetas-usuario.index')" :active="request()->routeIs('recetas-usuario.*')">
-                        {{ __('Recetas de clientes') }}
+                        {{ __('Recetas de la comunidad') }}
                     </x-nav-link>
                 </div>
 
@@ -77,7 +77,7 @@
             </x-responsive-nav-link>
 
             <x-responsive-nav-link :href="route('recetas-usuario.index')" :active="request()->routeIs('recetas-usuario.*')">
-                {{ __('Recetas de clientes') }}
+                {{ __('Recetas de la comunidad') }}
             </x-responsive-nav-link>
         </div>
 
