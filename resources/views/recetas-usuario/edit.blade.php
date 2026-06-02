@@ -2,7 +2,7 @@
     $recetaId = data_get($receta, 'id', data_get($receta, 'pkReceta'));
     $image = data_get($receta, 'image');
     $video = data_get($receta, 'youtube');
-    $mediaBaseUrl = 'http://149.56.15.70:3013/';
+    $mediaBaseUrl = 'https://storage.googleapis.com/rp-recipes-dev-images/';
     $imageUrl = $image ? $mediaBaseUrl.ltrim($image, '/') : null;
     $videoUrl = $video ? $mediaBaseUrl.ltrim($video, '/') : null;
 @endphp
