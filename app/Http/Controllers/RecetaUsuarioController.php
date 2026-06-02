@@ -198,14 +198,8 @@ class RecetaUsuarioController extends Controller
             'pkReceta' => $receta,
             'fkStatus' => $fkStatus,
         ];
-        $headers = [
-            'pkReceta' => (string) $receta,
-            'fkStatus' => (string) $fkStatus,
-            'Content-Type' => 'application/x-www-form-urlencoded',
-        ];
 
         $response = Http::timeout(30)
-            ->withHeaders($headers)
             ->asForm()
             ->post($url, $payload);
 
@@ -213,7 +207,7 @@ class RecetaUsuarioController extends Controller
             'label' => 'Cambiar estatus',
             'method' => 'POST',
             'url' => $url,
-            'headers' => $headers,
+            'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
             'body' => $payload,
             'response_status' => $response->status(),
             'response_body' => $response->body(),
