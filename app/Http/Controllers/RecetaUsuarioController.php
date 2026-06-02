@@ -194,21 +194,27 @@ class RecetaUsuarioController extends Controller
     private function sendStatusChange(int $receta, int $fkStatus, array &$apiDebug = [])
     {
         $url = self::API_BASE_URL.'/api/cambiarStatusRecetaUsuario';
+        $payload = [
+            'pkReceta' => $receta,
+            'fkStatus' => $fkStatus,
+        ];
         $headers = [
             'pkReceta' => (string) $receta,
             'fkStatus' => (string) $fkStatus,
+            'Content-Type' => 'application/x-www-form-urlencoded',
         ];
 
         $response = Http::timeout(30)
             ->withHeaders($headers)
-            ->post($url);
+            ->asForm()
+            ->post($url, $payload);
 
         $apiDebug[] = [
             'label' => 'Cambiar estatus',
             'method' => 'POST',
             'url' => $url,
             'headers' => $headers,
-            'body' => [],
+            'body' => $payload,
             'response_status' => $response->status(),
             'response_body' => $response->body(),
         ];
