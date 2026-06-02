@@ -29,6 +29,13 @@
                 </div>
             @endif
 
+            @if (session('api_debug'))
+                <div class="mb-6 p-4 bg-gray-900 text-gray-100 rounded overflow-auto">
+                    <div class="font-semibold mb-2">Debug API</div>
+                    <pre class="text-xs whitespace-pre-wrap">{{ json_encode(session('api_debug'), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
+                </div>
+            @endif
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
                     <label class="block mb-1 font-medium">Imagen</label>
@@ -58,6 +65,10 @@
             <form method="post" action="{{ route('recetas-usuario.update', $recetaId) }}">
                 @csrf
                 @method('PUT')
+
+                @if(request()->boolean('debugApi'))
+                    <input type="hidden" name="debugApi" value="1">
+                @endif
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
