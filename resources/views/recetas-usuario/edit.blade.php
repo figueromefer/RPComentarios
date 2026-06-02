@@ -88,23 +88,23 @@
                         @php
                             $selectedStatus = (int) old('fkStatus', data_get($receta, 'fkStatus', $fkStatus));
                             $statusStyles = [
-                                1 => 'border-green-500 bg-green-50 text-green-800 ring-green-200',
-                                2 => 'border-yellow-500 bg-yellow-50 text-yellow-800 ring-yellow-200',
-                                3 => 'border-red-500 bg-red-50 text-red-800 ring-red-200',
+                                1 => 'border-green-500 bg-green-50 text-green-800 box-shadow:0 0 0 2px #bbf7d0;',
+                                2 => 'border-yellow-500 bg-yellow-50 text-yellow-800 box-shadow:0 0 0 2px #fde68a;',
+                                3 => 'border-red-500 bg-red-50 text-red-800 box-shadow:0 0 0 2px #fecaca;',
                             ];
                             $statusDotStyles = [
-                                1 => 'bg-green-500',
-                                2 => 'bg-yellow-500',
-                                3 => 'bg-red-500',
+                                1 => 'background:#22c55e;',
+                                2 => 'background:#eab308;',
+                                3 => 'background:#ef4444;',
                             ];
                         @endphp
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" id="status-options">
                             @foreach($estados as $id => $nombre)
                                 @php $isSelected = $selectedStatus === (int) $id; @endphp
-                                <label class="cursor-pointer rounded-lg border px-3 py-3 text-sm font-semibold transition {{ $isSelected ? ($statusStyles[$id] ?? 'border-indigo-500 bg-indigo-50 text-indigo-800 ring-indigo-200').' ring-2' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50' }}">
-                                    <input type="radio" name="fkStatus" value="{{ $id }}" class="sr-only" @checked($isSelected)>
+                                <label data-status-option="{{ $id }}" class="cursor-pointer rounded-lg border px-3 py-3 text-sm font-semibold transition {{ $isSelected ? 'border-green-500 bg-green-50 text-green-800' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50' }}" style="{{ $isSelected ? ($statusStyles[$id] ?? '') : '' }}">
+                                    <input type="radio" name="fkStatus" value="{{ $id }}" class="sr-only" @checked($isSelected) onchange="window.updateStatusCards && window.updateStatusCards(this.value)">
                                     <span class="flex items-center gap-2">
-                                        <span class="h-2.5 w-2.5 rounded-full {{ $statusDotStyles[$id] ?? 'bg-gray-400' }}"></span>
+                                        <span data-status-dot="{{ $id }}" class="h-2.5 w-2.5 rounded-full" style="{{ $statusDotStyles[$id] ?? 'background:#9ca3af;' }}"></span>
                                         {{ $nombre }}
                                     </span>
                                 </label>
@@ -153,4 +153,21 @@
             </form>
         </div>
     </div>
+
+    <script>
+        window.updateStatusCards = function (selectedValue) {
+            const styles = {
+                '1': { cls: 'border-green-500 bg-green-50 text-green-800', shadow: '0 0 0 2px #bbf7d0' },
+                '2': { cls: 'border-yellow-500 bg-yellow-50 text-yellow-800', shadow: '0 0 0 2px #fde68a' },
+                '3': { cls: 'border-red-500 bg-red-50 text-red-800', shadow: '0 0 0 2px #fecaca' }
+            };
+
+            document.querySelectorAll('[data-status-option]').forEach(function (label) {
+                const status = label.getAttribute('data-status-option');
+                label.className = 'cursor-pointer rounded-lg border px-3 py-3 text-sm font-semibold transition ' +
+                    (status === selectedValue ? styles[status].cls : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50');
+                label.style.boxShadow = status === selectedValue ? styles[status].shadow : '';
+            });
+        };
+    </script>
 </x-app-layout>
