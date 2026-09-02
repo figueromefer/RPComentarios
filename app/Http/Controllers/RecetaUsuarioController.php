@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 class RecetaUsuarioController extends Controller
@@ -42,6 +43,7 @@ class RecetaUsuarioController extends Controller
 
             if ($response->successful()) {
                 $recetas = $this->normalizeCollection($response->json());
+                $recetas = $this->enrichRecipesWithUserData($recetas);
             } else {
                 $error = 'No se pudieron obtener las recetas. Código API: '.$response->status().' '.$this->apiMessage($response);
             }
@@ -214,6 +216,61 @@ class RecetaUsuarioController extends Controller
         ];
 
         return $response;
+    }
+
+    private function enrichRecipesWithUserData(array $recetas): array
+    {
+        $ids = collect($recetas)
+            ->map(fn ($receta) => (int) $this->value($receta, ['id', 'pkReceta', 'PK_RECETA']))
+            ->filter()
+            ->values()
+            ->all();
+
+        if (empty($ids)) {
+            return $recetas;
+        }
+
+        try {
+            $metadata = DB::connection('legacy')
+                ->table('recipes as r')
+                ->leftJoin('T_USUARIOS as u', 'u.TUS_PK_USUARIO', '=', 'r.TUS_FK_USUARIO')
+                ->whereIn('r.id', $ids)
+                ->select([
+                    'r.id',
+                    'r.fecha_registro',
+                    'u.TUS_NAME_CONCURSO',
+                    'u.TUS_EMAIL_CONCURSO',
+                    'u.TUS_NUMERO_CONCURSO',
+                    'u.TUS_CIUDAD_CONCURSO',
+                    'u.TUS_ESTADO_CONCURSO',
+                ])
+                ->get()
+                ->keyBy('id');
+
+            return array_map(function (array $receta) use ($metadata) {
+                $id = (int) $this->value($receta, ['id', 'pkReceta', 'PK_RECETA']);
+                $row = $metadata->get($id);
+
+                $receta['fecha_registro'] = $row->fecha_registro ?? '';
+                $receta['nombre_usuario'] = $row->TUS_NAME_CONCURSO ?? '';
+                $receta['correo_usuario'] = $row->TUS_EMAIL_CONCURSO ?? '';
+                $receta['telefono_usuario'] = $row->TUS_NUMERO_CONCURSO ?? '';
+                $receta['ciudad_usuario'] = $row->TUS_CIUDAD_CONCURSO ?? '';
+                $receta['estado_usuario'] = $row->TUS_ESTADO_CONCURSO ?? '';
+
+                return $receta;
+            }, $recetas);
+        } catch (\Throwable $exception) {
+            return array_map(function (array $receta) {
+                $receta['fecha_registro'] = '';
+                $receta['nombre_usuario'] = '';
+                $receta['correo_usuario'] = '';
+                $receta['telefono_usuario'] = '';
+                $receta['ciudad_usuario'] = '';
+                $receta['estado_usuario'] = '';
+                return $receta;
+            }, $recetas);
+        }
     }
 
     private function backWithApiError(bool $debugEnabled, array $apiDebug, string $message)
