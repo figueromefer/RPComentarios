@@ -21,11 +21,11 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Recetas de clientes
+            Recetas de la comunidad
         </h2>
     </x-slot>
 
-    <div class="py-6 max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-6 max-w-[1600px] mx-auto sm:px-6 lg:px-8">
         @if (session('status'))
             <div class="mb-4 p-3 bg-green-100 text-green-800 rounded">
                 {{ session('status') }}
@@ -63,13 +63,18 @@
             </noscript>
         </form>
 
-        <div class="bg-white shadow rounded overflow-hidden">
-            <table class="min-w-full">
+        <div class="bg-white shadow rounded overflow-x-auto">
+            <table class="min-w-full text-sm">
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="text-left px-4 py-2">ID</th>
+                        <th class="text-left px-4 py-2">Fecha</th>
                         <th class="text-left px-4 py-2">Título</th>
-                        <th class="text-left px-4 py-2">Descripción corta</th>
+                        <th class="text-left px-4 py-2">Nombre</th>
+                        <th class="text-left px-4 py-2">Correo</th>
+                        <th class="text-left px-4 py-2">Teléfono</th>
+                        <th class="text-left px-4 py-2">Ciudad</th>
+                        <th class="text-left px-4 py-2">Estado</th>
                         <th class="text-left px-4 py-2">Tiempo</th>
                         <th class="text-left px-4 py-2">Porciones</th>
                         <th class="text-left px-4 py-2">Imagen</th>
@@ -82,8 +87,13 @@
                 @forelse ($recetas as $receta)
                     @php
                         $pkReceta = $getValue($receta, ['pkReceta', 'id', 'PK_RECETA']);
+                        $fecha = $getValue($receta, ['fecha_registro']);
                         $title = $getValue($receta, ['title', 'titulo', 'TITULO'], 'Sin título');
-                        $description = $getValue($receta, ['description_short', 'description', 'descripcion', 'DESCRIPCION']);
+                        $nombre = $getValue($receta, ['nombre_usuario']);
+                        $correo = $getValue($receta, ['correo_usuario']);
+                        $telefono = $getValue($receta, ['telefono_usuario']);
+                        $ciudad = $getValue($receta, ['ciudad_usuario']);
+                        $estado = $getValue($receta, ['estado_usuario']);
                         $time = $getValue($receta, ['time', 'tiempo', 'TIEMPO']);
                         $portions = $getValue($receta, ['portions', 'portion', 'porcion', 'PORCION']);
                         $image = $getValue($receta, ['image', 'imagen']);
@@ -92,23 +102,24 @@
                     @endphp
 
                     <tr class="border-t align-top">
-                        <td class="px-4 py-2 whitespace-nowrap">{{ $pkReceta }}</td>
-                        <td class="px-4 py-2 font-medium text-gray-900">
-                            {{ Str::limit($title, 60) }}
-                        </td>
-                        <td class="px-4 py-2 text-gray-700">
-                            {{ Str::limit($description, 90) }}
-                        </td>
-                        <td class="px-4 py-2 whitespace-nowrap">{{ $time }}</td>
-                        <td class="px-4 py-2 whitespace-nowrap">{{ $portions }}</td>
-                        <td class="px-4 py-2 whitespace-nowrap">{{ $image ? 'Sí' : 'No' }}</td>
-                        <td class="px-4 py-2 whitespace-nowrap">{{ $video ? 'Sí' : 'No' }}</td>
-                        <td class="px-4 py-2 whitespace-nowrap">
+                        <td class="px-4 py-3 whitespace-nowrap">{{ $pkReceta }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap">{{ $fecha }}</td>
+                        <td class="px-4 py-3 font-medium text-gray-900 min-w-[180px]">{{ Str::limit($title, 60) }}</td>
+                        <td class="px-4 py-3 min-w-[180px]">{{ $nombre }}</td>
+                        <td class="px-4 py-3 min-w-[220px]">{{ $correo }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap">{{ $telefono }}</td>
+                        <td class="px-4 py-3 min-w-[140px]">{{ $ciudad }}</td>
+                        <td class="px-4 py-3 min-w-[120px]">{{ $estado }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap">{{ $time }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap">{{ $portions }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap">{{ $image ? 'Sí' : 'No' }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap">{{ $video ? 'Sí' : 'No' }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap">
                             <span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold {{ $badgeClasses[$rowStatus] ?? 'bg-gray-100 text-gray-800' }}">
                                 {{ $estados[$rowStatus] ?? $rowStatus }}
                             </span>
                         </td>
-                        <td class="px-4 py-2 whitespace-nowrap">
+                        <td class="px-4 py-3 whitespace-nowrap">
                             @if($pkReceta)
                                 <a href="{{ route('recetas-usuario.edit', ['receta' => $pkReceta, 'fkStatus' => $fkStatus]) }}" class="text-indigo-600 hover:underline">
                                     Editar
@@ -120,7 +131,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="px-4 py-6 text-center text-gray-500">
+                        <td colspan="14" class="px-4 py-6 text-center text-gray-500">
                             Sin recetas para este estatus.
                         </td>
                     </tr>
